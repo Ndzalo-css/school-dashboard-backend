@@ -1,14 +1,20 @@
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from prometheus_client import Counter, generate_latest
 
 app = Flask(__name__)
 
 # ✅ Allow your GitHub Pages frontend
 CORS(app, origins=["https://ndzalo-css.github.io"])
 
+# 🔥 Prometheus metric (counts requests)
+REQUEST_COUNT = Counter("app_requests_total", "Total App Requests")
+
 @app.route("/students")
 def students():
+    REQUEST_COUNT.inc()
+
     data = [
         {
             "name": "Sabine Klein",
@@ -71,13 +77,22 @@ def students():
             "handover": "Monitor"
         },
     ]
+
     return jsonify(data)
+
 
 @app.route("/health")
 def health():
     return {"status": "ok"}
 
-# 🔥 IMPORTANT for Render
+
+# 🔥 Prometheus metrics endpoint
+@app.route("/metrics")
+def metrics():
+    return generate_latest()
+
+
+# 🔥 Production-ready run (works for Docker + cloud like Render)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
