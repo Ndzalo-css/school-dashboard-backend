@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 from flask_cors import CORS
 from prometheus_client import Counter, generate_latest
 
@@ -10,6 +10,7 @@ CORS(app, origins=["https://ndzalo-css.github.io"])
 
 # 🔥 Prometheus metric (counts requests)
 REQUEST_COUNT = Counter("app_requests_total", "Total App Requests")
+
 
 @app.route("/students")
 def students():
@@ -86,13 +87,13 @@ def health():
     return {"status": "ok"}
 
 
-# 🔥 Prometheus metrics endpoint
+# 🔥 FIXED Prometheus metrics endpoint (IMPORTANT)
 @app.route("/metrics")
 def metrics():
-    return generate_latest()
+    return Response(generate_latest(), mimetype="text/plain")
 
 
-# 🔥 Production-ready run (works for Docker + cloud like Render)
+# 🔥 Production-ready run (works for Docker + Render)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
